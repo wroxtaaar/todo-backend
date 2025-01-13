@@ -3,7 +3,9 @@ package com.app.todo.config;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,8 +15,10 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableMethodSecurity
 public class SpringSecurityConfig {
 
+    @Bean
     public static PasswordEncoder passwordEncoder (){
         return new BCryptPasswordEncoder();
     }
@@ -25,6 +29,12 @@ public class SpringSecurityConfig {
 
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((authorize) -> {
+                    authorize.requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN");
+                    authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN");
+                    authorize.requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN");
+                    // authorize.requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER");
+                    authorize.requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "USER");
+                    authorize.requestMatchers(HttpMethod.GET, "/api/**").permitAll();
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());
         return http.build();
@@ -33,8 +43,8 @@ public class SpringSecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.builder()
-                .username("ww")
-                .password(passwordEncoder().encode("ww"))
+                .username("user")
+                .password(passwordEncoder().encode("123"))
                 .roles("USER")
                 .build();
 
